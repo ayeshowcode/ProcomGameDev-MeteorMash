@@ -4,7 +4,7 @@ void Game::initVariables()
 {
 	this->endgame = false;
 	this->window = nullptr;
-
+	currentlevel = 1;
 	this->points = 0;
 	this->health = 50;
 	this->enemySpawnTimerMax = 75.f;
@@ -12,6 +12,7 @@ void Game::initVariables()
 	this->maxEnemies = 10;
 	this->MouseHold = false;
 	this->backgroundVelocity = 1.f;
+	this->asteroidspeed = 2.0f;
 }
 void Game::initWindow()
 {
@@ -137,7 +138,7 @@ void Game::spawnEnemy()
 		scale = 1.2f;
 		break;
 	}
-	float baseSizeX = 272; // Assuming your asteroid.png has a base size of 100x100
+	float baseSizeX = 272; 
 	float baseSizeY = 184;
 	this->enemy.setSize(sf::Vector2f(baseSizeX * scale, baseSizeY * scale));
 	this->enemies.push_back(this->enemy);
@@ -151,14 +152,6 @@ void Game::PollEvents()
 		case sf::Event::Closed:
 			this->window->close();
 			break;
-		case sf::Event::KeyPressed:
-			if (this->ev.key.code == sf::Keyboard::R && this->endgame)
-			{
-				this->initVariables();
-				this->inittext();
-				this->initEnemies();
-			}
-			break;
 		}
 	}
 }
@@ -170,64 +163,84 @@ void Game::UpdateMousePos()
 void Game::updateText()
 {
 	std::stringstream ss;
-	ss << "Points: " << this->points << std::endl << "health: " << this->health << std::endl;
+	ss << "Points: " << this->points << std::endl << "health: " << this->health << std::endl << "Level: " << this->currentlevel<< std::endl;
 	this->uiText.setString(ss.str());
 }
 //moving and upadating the enemy
 void Game::UpdateEnemies()
 {
-	// Updating the timer for enemy spawning
-	if (this->enemySpawnTimer >= this->enemySpawnTimerMax)
+	// If the game has ended, no need to update enemies
+	if (this->endgame)
+		return;
+
+	// Check if it's time to spawn a new enemy
+	if (this->enemies.size() < this->maxEnemies)
 	{
-		// Spawn the enemy and reset the timer
-		this->spawnEnemy();
-		this->enemySpawnTimer = 0.f;
+		if (this->enemySpawnTimer >= this->enemySpawnTimerMax)
+		{
+			// Spawn the enemy and reset the timer
+			this->spawnEnemy();
+			this->enemySpawnTimer = 0.f;
+		}
+		else
+			this->enemySpawnTimer += 1.f;
 	}
-	else
-	{
-		this->enemySpawnTimer += 1.f;
-	}
-	// Move the enemies and check for off-screen enemies
+
+	// Move and update the enemies
 	for (int i = 0; i < this->enemies.size(); i++)
 	{
-		this->enemies[i].move(0.f, 3.f);
-		// If the enemy goes off-screen, remove it and decrease health
+		bool deleted = false;
+
+		this->enemies[i].move(0.f, this->enemies[i].getScale().y * 5.f);
+
 		if (this->enemies[i].getPosition().y > this->window->getSize().y)
 		{
 			this->enemies.erase(this->enemies.begin() + i);
 			this->health -= 1;
-			break; // Break out of the loop to avoid vector index issues after erase
+			deleted = true;
 		}
-	}
-	// Check if the left mouse button was pressed and released (click)
-	if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
-	{
-		if (this->MouseHold == false)
-		{
-			this->MouseHold = true;
-			bool hit = false;
 
+		if (!deleted)
+		{
 			// Check if an enemy was clicked
-			for (size_t i = 0; i < this->enemies.size() && !hit; i++)
+			if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
 			{
 				if (this->enemies[i].getGlobalBounds().contains(this->mousePosView))
 				{
-					asteroidClickSound.play();
-					
 					// If enemy was clicked, remove it and increase points
-					hit = true;
+					deleted = true;
+
+					// Get the scale of the asteroid
+					float scale = this->enemies[i].getScale().x; // Assuming uniform scaling in x and y
+
+					// Initialize pointsAwarded variable
+					int pointsAwarded = 0;
+
+					// Compare the scale and award points accordingly
+					if (scale >= 0.7f)
+					{
+						pointsAwarded = 10; // Award more points for smaller asteroids
+					}
+					else if (scale < 0.7f && scale >= 0.4f)
+					{
+						pointsAwarded = 8; // Award fewer points for larger asteroids
+					}
+					else if (scale < 0.4f)
+					{
+						pointsAwarded = 5;
+					}
+
+					// Increase points based on the scale of the asteroid
+					this->points += pointsAwarded;
+
+					// Play the asteroid click sound
+					this->asteroidClickSound.play();
+
+					// Remove the enemy from the vector
 					this->enemies.erase(this->enemies.begin() + i);
 				}
-			}// If no enemy was clicked and it is a new click, decrease health by 1
-			if (!hit)
-			{
-				this->health -= 1;
 			}
 		}
-	}
-	else
-	{
-		this->MouseHold = false;
 	}
 }
 void Game::Update()
@@ -235,7 +248,32 @@ void Game::Update()
 	this->PollEvents();
 	this->UpdateMousePos();
 	this->updateText();
-
+		if (this->points > 500)
+		{
+			this->endgame = true; // Set the endgame condition to true
+		}
+		// Check points and update the level accordingly
+		else if (this->points > 300)
+		{
+			this->currentlevel=3;
+			this->health = 50; // Reset health to 50
+			this->asteroidspeed = 100.0f;
+			this->enemySpawnTimerMax = 120.f;
+			this->maxEnemies = 1;
+			this->backgroundVelocity = 200.f;
+			// Update other game parameters for each level, if needed
+		}
+		else if (this->points > 100)
+		{
+			this->currentlevel=2;
+			this->health = 50; // Reset health to 50
+			this->asteroidspeed = 100.0f;
+			this->enemySpawnTimerMax = 120.f;
+			this->maxEnemies = 19;
+			this->backgroundVelocity = 200.f;
+			// Update other game parameters for each level, if needed
+		}
+	
 	if (this->health <= 0)
 	{
 		this->endgame = true;

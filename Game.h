@@ -46,17 +46,21 @@ private:
 	//audio
 	sf::SoundBuffer asteroidClickBuffer;
 	sf::Sound asteroidClickSound;
-
+     
 	// ... other private members ...
 	// Game Logic
 	bool endgame;
 	unsigned points;
+
 	int health;
 	float enemySpawnTimer;
 	float enemySpawnTimerMax;
 	int maxEnemies;
 	bool MouseHold;
 	float backgroundVelocity;
+
+	float asteroidspeed;
+	int currentlevel;
 	//Game objects
 	std::vector<sf::RectangleShape> enemies;
 	sf::RectangleShape enemy;
@@ -85,6 +89,7 @@ public:
 	void UpdateMousePos();
 	void updateText();
 	void UpdateEnemies();
+	void updateLevel();
 	void Update();
 	void renderText(sf:: RenderTarget& target);
 	void RenderEnemies(sf::RenderTarget& target);
