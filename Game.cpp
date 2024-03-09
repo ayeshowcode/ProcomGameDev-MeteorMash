@@ -12,7 +12,7 @@ void Game::initVariables()
 	this->maxEnemies = 10;
 	this->MouseHold = false;
 	this->backgroundVelocity = 1.f;
-	this->asteroidspeed = 2.0f;
+	this->asteroidspeed = 1.0f;
 }
 void Game::initWindow()
 {
@@ -41,16 +41,11 @@ void Game::inittext()
 	this->uiText.setString("NONE");
 
 	this->gameOverText.setFont(this->font);
-	this->gameOverText.setCharacterSize(24);
+	this->gameOverText.setCharacterSize(50);
 	this->gameOverText.setFillColor(sf::Color::Red);
-	this->gameOverText.setString("GAME OVER!");
+	this->gameOverText.setString("GAME OVER! \n you won");
 	this->gameOverText.setPosition(800 / 2.f, 600 / 2.f);
 
-	this->tryagainText.setFont(this->font);
-	this->tryagainText.setCharacterSize(24);
-	this->tryagainText.setFillColor(sf::Color::Red);
-	this->tryagainText.setString("Try again!");
-	this->tryagainText.setPosition(800 / 2.f, 600 / 2.f + 30.f);
 }
 void Game::initEnemies()
 {
@@ -199,7 +194,6 @@ void Game::UpdateEnemies()
 			this->health -= 1;
 			deleted = true;
 		}
-
 		if (!deleted)
 		{
 			// Check if an enemy was clicked
@@ -255,25 +249,20 @@ void Game::Update()
 		// Check points and update the level accordingly
 		else if (this->points > 300)
 		{
-			this->currentlevel=3;
+			this->currentlevel = 3;
 			this->health = 50; // Reset health to 50
-			this->asteroidspeed = 100.0f;
-			this->enemySpawnTimerMax = 120.f;
-			this->maxEnemies = 1;
-			this->backgroundVelocity = 200.f;
+			this->asteroidspeed += 150.0f; // Increased asteroid speed for level 3
+			this->backgroundVelocity = 5.f; // Increased background velocity for level 3
 			// Update other game parameters for each level, if needed
 		}
 		else if (this->points > 100)
 		{
-			this->currentlevel=2;
+			this->currentlevel = 2;
 			this->health = 50; // Reset health to 50
-			this->asteroidspeed = 100.0f;
-			this->enemySpawnTimerMax = 120.f;
-			this->maxEnemies = 19;
-			this->backgroundVelocity = 200.f;
+			this->asteroidspeed += 125.0f; // Increased asteroid speed for level 2
+			this->backgroundVelocity = 2.f; // Increased background velocity for level 2
 			// Update other game parameters for each level, if needed
 		}
-	
 	if (this->health <= 0)
 	{
 		this->endgame = true;

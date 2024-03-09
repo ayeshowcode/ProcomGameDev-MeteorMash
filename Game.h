@@ -89,7 +89,6 @@ public:
 	void UpdateMousePos();
 	void updateText();
 	void UpdateEnemies();
-	void updateLevel();
 	void Update();
 	void renderText(sf:: RenderTarget& target);
 	void RenderEnemies(sf::RenderTarget& target);
